@@ -1,18 +1,34 @@
 {
   "name": "recode",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "Local safety net that continuously snapshots uncommitted code outside the working tree",
   "license": "ISC",
   "author": "Nguyễn Xuân Ân Hnởng",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "recode": "dist/cli/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:slow": "RECODE_SLOW_TESTS=1 vitest run"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.6.0",
+    "chokidar": "4",
+    "commander": "^15.0.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "@types/node": "^26.6.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
   }
 }
