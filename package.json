@@ -18,8 +18,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:slow": "RECODE_SLOW_TESTS=1 vitest run"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@parcel/watcher": "^2.6.0",
