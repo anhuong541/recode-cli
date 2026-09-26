@@ -79,7 +79,8 @@ export async function makeSandbox(opts: SandboxOptions = {}): Promise<Sandbox> {
     },
     read: (path) => readFileSync(join(root, path)),
     sha: (path) => sha256(readFileSync(join(root, path))),
-    cleanup: () => rmSync(base, { recursive: true, force: true }),
+    // Retries cover Windows files briefly held by antivirus / indexers / exiting processes.
+    cleanup: () => rmSync(base, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }),
   };
   sb.git('init', '-q');
   for (const [p, c] of Object.entries(opts.files ?? {})) sb.write(p, c);

@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -94,7 +95,12 @@ describe('7A.10 đường dẫn tiếng Việt, CRLF, file bị khóa', () => {
       expect(saved.skipped.map((s: any) => s.path)).toContain('locked.ts');
       expect((await cli(sb, ['show', saved.snapshot.id, '--', 'free.ts'])).stdout).toBe('free\n');
     } finally {
-      holder.kill();
+      // Windows releases the lock only once the process has exited; wait before cleanup.
+      if (holder.exitCode === null && holder.signalCode === null) {
+        const exited = once(holder, 'exit');
+        holder.kill();
+        await exited;
+      }
     }
   });
 });
