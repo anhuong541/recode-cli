@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { isProcessAlive, readJsonFile, writeJsonAtomic } from './fsutil.js';
 import type { Project } from './project.js';
@@ -13,7 +14,7 @@ export interface WatchState {
   modeReason?: string;
 }
 
-export type ProtectionStatus = 'watching' | 'not-watching' | 'stale';
+export type ProtectionStatus = 'watching' | 'not-watching' | 'stale' | 'project-missing';
 
 export interface Protection {
   status: ProtectionStatus;
@@ -37,6 +38,15 @@ export async function readWatchState(project: Project): Promise<WatchState | und
 /** Principle 7: an unprotected project must be reported loudly, never silently. */
 export async function protectionOf(rt: Runtime, project: Project): Promise<Protection> {
   const state = await readWatchState(project);
+  if (!existsSync(project.root)) {
+    return {
+      status: 'project-missing',
+      message:
+        `KHÔNG được bảo vệ: thư mục project không còn tồn tại (${project.root}). ` +
+        `Snapshot vẫn còn — khôi phục: recode restore latest --project "${project.root}" --to <thư mục mới>`,
+      watch: state,
+    };
+  }
   if (!state) {
     return {
       status: 'not-watching',

@@ -38,6 +38,7 @@ export async function readUserRepo(root: string): Promise<UserRepoState> {
 }
 
 export async function treeOfCommit(root: string, commit: string): Promise<string | undefined> {
+  if (!existsSync(root)) return undefined;
   const res = await runGit(['rev-parse', '-q', '--verify', `${commit}^{tree}`], { cwd: root, allowFailure: true });
   return res.code === 0 ? res.stdout.toString('utf8').trim() : undefined;
 }
@@ -49,6 +50,7 @@ export interface HeadInfo {
 }
 
 export async function headInfo(root: string): Promise<HeadInfo | undefined> {
+  if (!existsSync(root)) return undefined;
   const res = await runGit(['log', '-1', '--format=%h%x00%s%x00%ct', 'HEAD'], { cwd: root, allowFailure: true });
   if (res.code !== 0) return undefined;
   const [short, subject, ct] = splitNul(res.stdout.toString('utf8').trim());
@@ -58,9 +60,10 @@ export async function headInfo(root: string): Promise<HeadInfo | undefined> {
 
 /** Tree ids of every commit reachable from any ref, committed since `sinceMs`. */
 export async function recentCommitTrees(root: string, sinceMs: number): Promise<Set<string>> {
+  const out = new Set<string>();
+  if (!existsSync(root)) return out;
   const since = new Date(sinceMs).toISOString();
   const res = await runGit(['log', '--all', `--since=${since}`, '--format=%T'], { cwd: root, allowFailure: true });
-  const out = new Set<string>();
   if (res.code !== 0) return out;
   for (const line of res.stdout.toString('utf8').split('\n')) {
     const t = line.trim();

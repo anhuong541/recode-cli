@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { findSnapshot, listSnapshots, type FileChange, type Snapshot } from './catalog.js';
 import { RecodeError } from './errors.js';
 import type { Project } from './project.js';
@@ -28,6 +29,12 @@ export interface DiffOptions {
 }
 
 async function currentTree(rt: Runtime, project: Project): Promise<string> {
+  if (!existsSync(project.root)) {
+    throw new RecodeError(
+      `Thư mục project không tồn tại (${project.root}); không có "current" để so sánh. Dùng --against <snapshot id>.`,
+      'PROJECT_MISSING',
+    );
+  }
   return withRepoLock(project, async () => {
     await ensureStore(rt, project);
     const user = await readUserRepo(project.root);

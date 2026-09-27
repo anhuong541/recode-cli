@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { basename } from 'node:path';
 import { activeAlerts, type Alert } from './alerts.js';
 import { listSnapshots, type Snapshot, type SnapshotStats, describeStats } from './catalog.js';
@@ -24,7 +25,7 @@ export interface SnapshotSummary {
 
 export interface ContextData {
   schemaVersion: number;
-  project: { name: string; root: string; repoId: string; branch: string | null; head: HeadInfo | null };
+  project: { name: string; root: string; repoId: string; exists: boolean; branch: string | null; head: HeadInfo | null };
   protection: Protection;
   snapshotCount: number;
   alerts: Alert[];
@@ -65,6 +66,7 @@ export async function buildContext(rt: Runtime, project: Project, opts: { recent
       name: basename(project.root),
       root: project.root,
       repoId: project.repoId,
+      exists: existsSync(project.root),
       branch: user.branch ?? null,
       head: head ?? null,
     },
@@ -109,6 +111,8 @@ export function renderContextMarkdown(ctx: ContextData, now: number): string {
   if (ctx.project.head) {
     const h = ctx.project.head;
     lines.push(`HEAD: ${h.short} "${h.subject}" (${relativeTime(h.time, now)})`);
+  } else if (!ctx.project.exists) {
+    lines.push('HEAD: (thư mục project và .git không còn tồn tại)');
   } else {
     lines.push('HEAD: (chưa có commit hoặc không đọc được .git)');
   }
